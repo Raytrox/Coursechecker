@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/magiconair/properties"
 	"go.mongodb.org/mongo-driver/bson"
@@ -49,7 +50,7 @@ func init() {
 	fmt.Println("Collection created!")
 }
 
-// get all units from database
+// GetAllUnits from database
 func GetAllUnits(w http.ResponseWriter, r *http.Request) {
 	cur, err := collection.Find(context.Background(), bson.D{{}})
 	if err != nil {
@@ -84,11 +85,26 @@ func courseHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	var course models.Unit
 
-	fmt.Println(r.Body)
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
-	_ = json.NewDecoder(r.Body).Decode(&course)
+	err = json.Unmarshal(b, &course)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+	}
+
 	addUnit(course)
 
 	for {
