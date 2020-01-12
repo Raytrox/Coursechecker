@@ -86,6 +86,8 @@ func courseHandler(w http.ResponseWriter, r *http.Request) {
 
 	var course models.Unit
 
+	fmt.Println(r.Body)
+
 	_ = json.NewDecoder(r.Body).Decode(&course)
 	addUnit(course)
 
@@ -97,7 +99,8 @@ func courseHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Currently there is no seat available for the course\n")
 		time.Sleep(10000 * time.Millisecond)
 	}
-	// TODO: use multithread to handle multiple request
+	// TODO: use multithread to handle multiple request and add response
+	// response could either be monitoring started with 200 or bad data input with 400 
 }
 
 // getNumberofSeats takes dept, course number and section number
@@ -106,6 +109,7 @@ func getNumberofSeats(c models.Unit) int {
 	temp := 0
 	url := "https://courses.students.ubc.ca/cs/courseschedule?pname=subjarea&tname=subj-section&" +
 		"dept=" + c.Dept + "&course=" + c.Number + "&section=" + c.Section
+	fmt.Println("the url requested is: " + url)
 	res, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
